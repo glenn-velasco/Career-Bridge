@@ -13,32 +13,53 @@ import { handleResume } from "@/lib/actions";
 export default function JobBoard() {
 
   const [fileName, setFileName] = React.useState<string | null>(null)
-
   const fileInputRef = React.useRef<HTMLInputElement>(null)
-
   const [jobs, setJobs] = React.useState<any[]>([])
-
   const [isPending, setIsPending] = React.useState<boolean>(false)
+  const [error, setError] = React.useState<string | null>(null)
+  const [isMounted, setIsMounted] = React.useState(false)
+
+  React.useEffect(() => {
+    setIsMounted(true)
+    const savedFileName = localStorage.getItem("resume_filename")
+    const savedJobs = localStorage.getItem("job_list")
+
+    if (savedFileName) setFileName(savedFileName)
+    if (savedJobs) {
+      try {
+        setJobs(JSON.parse(savedJobs))
+      } catch (e) {
+        console.error("Failed to parse saved jobs", e)
+      }
+    }
+  }, [])
+
+  React.useEffect(() => {
+    if (!isMounted) return
+
+    if (fileName) {
+      localStorage.setItem("resume_filename", fileName)
+    } else {
+      localStorage.removeItem("resume_filename")
+    }
+
+    if (jobs.length > 0) {
+      localStorage.setItem("job_list", JSON.stringify(jobs))
+    } else {
+      localStorage.removeItem("job_list")
+    }
+  }, [fileName, jobs, isMounted])
 
   const handleUploadClick = () => {
-
     fileInputRef.current?.click()
-
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-
     const file = e.target.files?.[0]
-
     if (file) {
-
       setFileName(file.name)
-
     }
-
   }
-
-  const [error, setError] = React.useState<string | null>(null)
 
   const handleResumeSubmit = async (formData: FormData) => {
     setIsPending(true)
@@ -65,7 +86,6 @@ export default function JobBoard() {
 
       <div className="mx-auto w-full max-w-3xl space-y-8">
 
-        {/* Header Section */}
         <div className="space-y-2">
           <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
             Open Positions
@@ -78,7 +98,6 @@ export default function JobBoard() {
           {error && <p className="text-red-500 text-sm">{error}</p>}
         </div>
 
-        {/* Job Listings Area */}
         <div className="space-y-4 overflow-y-auto max-h-[500px] no-scroll-bar">
           {jobs.map((item, index) => (
             <Link key={index} href="/job-info" /*target="_blank"*/>
@@ -143,6 +162,23 @@ export default function JobBoard() {
                     </>
                   )}
                 </Button>
+                
+                {(fileName || jobs.length > 0) && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-slate-500 hover:text-red-500"
+                    onClick={() => {
+                      setFileName(null)
+                      setJobs([])
+                      localStorage.removeItem("resume_filename")
+                      localStorage.removeItem("job_list")
+                    }}
+                  >
+                    Clear Results
+                  </Button>
+                )}
               </div>
 
               {fileName && (
