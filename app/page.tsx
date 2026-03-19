@@ -138,7 +138,7 @@ export default function JobBoard() {
   const totalPages = Math.ceil(jobs.length / ITEMS_PER_PAGE);
 
   return (
-    <div className="h-screen flex flex-col pt-2 sm:pt-4 pb-2 sm:pb-4 px-4 sm:px-6 lg:px-8 font-sans overflow-hidden 
+    <div className="h-screen flex flex-col py-[10] px-[20] lg:px-8 font-sans overflow-hidden 
     bg-gradient-to-b from-[#0e2931] via-[#3ea8a7] to-[#0e2931]">
 
       <div 
@@ -149,31 +149,33 @@ export default function JobBoard() {
           backgroundPosition: 'center' 
         }}
       />
-      <div className="mx-auto w-full max-w-3xl flex flex-col h-full min-h-0">
-        <div className="shrink-0 pb-6">
+      <div className="mx-auto my-auto w-full max-w-3xl flex flex-col justify-center h-full min-h-0 m">
+        <div className="shrink-0">
           <div className="flex flex-col items-center justify-center text-center">
-            <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-white drop-shadow-md">
-              Open Positions
-            </h1>
-            <p className="text-slate-200/90 text-lg sm:text-xl mt-2 font-medium">
+            <h1 className="text-3xl sm:text-6xl font-bold text-white drop-shadow-md">
               Begin Your Career Now
+            </h1>
+            <p className="text-slate-200/90 text-1xl sm:text-2xl mt-3">
+              Find Your Next Role and Build Our Future
             </p>
             
             <div className="absolute top-4 right-4 sm:top-8 sm:right-8">
-              <ModeToggle />
+              {/* <ModeToggle /> */}
             </div>
           </div>
 
           {(jobs.length > 0 || error || detectedExpertise) && (
             <div className="mt-10 flex flex-row items-center justify-between w-full px-1">
-
-              <div>
+              
+              <div className="w-full flex flex-col items-center justify-center space-y-2 my-4">
                 {jobs.length > 0 && (
                   <p className="text-slate-300/80 text-sm font-semibold tracking-wide">
                     Results Found: {jobs.length}
                   </p>
                 )}
-                {error && <p className="text-red-400 text-sm font-medium">{error}</p>}
+                <Card className="group relative overflow-hidden bg-white/25 backdrop-blur-md border border-white shadow-xl m-4 p-5"> 
+                  {error && <p className="text-red-600 text-xl font-medium">{error}</p>}
+                </Card>
               </div>
 
               {detectedExpertise && (
@@ -190,11 +192,11 @@ export default function JobBoard() {
           )}
         </div>
 
-        <div className="flex-1 overflow-y-auto space-y-3 no-scroll-bar py-2 pr-2">
+        <div className=" overflow-y-auto space-y-3 no-scroll-bar">
           {currentJobs.map((item, index) => (
             <div key={indexOfFirstJob + index} onClick={() => setSelectedJob(item)} className="cursor-pointer">
               <Card className="group relative overflow-hidden transition-all hover:scale-[1.01] 
-                  bg-white/10 backdrop-blur-md border border-white/20 shadow-xl m-4">
+                  bg-white/10 backdrop-blur-md border border-white/20 shadow-xl m-4 ">
                 <CardHeader className="pb-3 px-4 pt-4 sm:px-6 sm:pt-6">
                   <div className="flex justify-between">
                     <div className="space-y-1">
@@ -227,15 +229,17 @@ export default function JobBoard() {
           ))}
           {!isPending && jobs.length === 0 && !error && (
             <div className="text-center py-16 px-4">
-              <UploadCloud className="mx-auto h-12 w-12 text-zinc-200 dark:text-zinc-800 mb-4" />
-              <p className="text-zinc-600 dark:text-zinc-300 text-lg font-medium">
-                {fileName ? "No matching jobs found" : "Ready to find your next role?"}
-              </p>
-              <p className="text-zinc-400 dark:text-zinc-500 mt-1 max-w-sm mx-auto">
-                {fileName
-                  ? "Try uploading a different resume or wait for new positions."
-                  : "Upload your resume using the form below to instantly discover top roles that fit your experience."}
-              </p>
+              <Card className="group relative overflow-hidden bg-white/25 backdrop-blur-md border border-white shadow-xl m-4 ">
+                  <p className="text-[#0E2931] dark:text-[#0E2931] text-2xl font-extrabold ">
+                    {fileName ? "No matching jobs found" : "Submit Your Application"}
+                  </p>
+                  <p className="text-[#0E2931] dark:text-[#0E2931] mt-1 max-w-sm mx-auto">
+                    {fileName
+                      ? "Try uploading a different resume or wait for new positions."
+                      : "Upload your resume or paste portfolio link below."}
+                  </p>
+              </Card>
+              
             </div>
           )}
           {isPending && (
@@ -281,64 +285,63 @@ export default function JobBoard() {
           </div>
         )}
 
-        <div className="shrink-0 pb-2">
-          <div className="border border-zinc-200 dark:border-zinc-800 rounded-xl p-3 sm:p-4 shadow-sm">
+        <div className="shrink-0 pt-10">
+          <div className="border border-white rounded-xl p-4 sm:p-7 shadow-sm bg-[#0E2931]">
             <form action={handleResumeSubmit} className="flex flex-col sm:flex-row items-center justify-between gap-4">
               <input type="file" name="resume" className="hidden" ref={fileInputRef} onChange={handleFileChange} accept=".pdf,.docx" />
 
               <div className="flex-1 text-left w-full sm:w-auto">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                  <div>
-                    <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">AI Role Match</h3>
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Upload resume or paste portfolio link.</p>
-                  </div>
-
-                  {!fileName && (
+                  <div className="flex-grow space-y-2" >
+                    <h3 className="text-xl font-semibold text-zinc-100 px-2">AI Role Match</h3>
+                    <p className="text-xs text-zinc-500 mt-0.5"></p>
+                    {!fileName && (
                     <Input
                       type="url"
                       name="portfolioUrl"
                       placeholder="https://yourportfolio.com"
                       value={portfolioUrl}
                       onChange={(e) => setPortfolioUrl(e.target.value)}
-                      className="h-8 text-xs max-w-xs flex-1"
+                      className="w-full h-12 rounded-xl bg-slate-700/50 border border-slate-600/50 text-white placeholder:text-slate-400 focus:ring-2 focus:ring-[#3EA8A7] outline-none transition"
                     />
                   )}
+                  </div>
                 </div>
 
-                {fileName && (
-                  <div className="flex items-center gap-2 mt-2">
-                    <p className="text-xs text-green-600 font-medium flex items-center gap-1">
-                      <Send className="w-3 h-3" /> {fileName}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setFileName(null)
-                        setPortfolioUrl("")
-                        setDetectedExpertise(null)
-                        setJobs([])
-                        setCurrentPage(1)
-                        if (fileInputRef.current) fileInputRef.current.value = ""
-                        localStorage.removeItem("resume_filename")
-                        localStorage.removeItem("job_list")
-                        localStorage.removeItem("current_page")
-                        localStorage.removeItem("detected_expertise")
-                      }}
-                      className="text-zinc-400 hover:text-red-500 transition-colors p-0.5 rounded-full hover:bg-red-50 dark:hover:bg-red-950 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-red-200"
-                      title="Remove file"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </div>
-                )}
+                  {fileName && (
+                    <div className="flex items-center gap-2 mt-2">
+                      <p className="text-s text-green-600 font-medium flex items-center gap-1">
+                        <Send className="w-3 h-3" /> {fileName}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFileName(null)
+                          setPortfolioUrl("")
+                          setDetectedExpertise(null)
+                          setJobs([])
+                          setCurrentPage(1)
+                          if (fileInputRef.current) fileInputRef.current.value = ""
+                          localStorage.removeItem("resume_filename")
+                          localStorage.removeItem("job_list")
+                          localStorage.removeItem("current_page")
+                          localStorage.removeItem("detected_expertise")
+                        }}
+                        className="text-zinc-400 hover:text-red-500 transition-colors p-0.5 rounded-full hover:bg-red-950 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-red-200"
+                        title="Remove file"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
               </div>
 
-              <div className="flex items-center gap-2 w-full sm:w-[auto]">
-                <Button type="button" variant="outline" size="sm" onClick={handleUploadClick} disabled={isPending || !!portfolioUrl}>
+              <div className="flex flex-col items-center gap-2 w-full sm:w-[auto]">
+                <Button type="button" className="bg-[#91B032] text-white w-full" size="sm" onClick={handleUploadClick} disabled={isPending || !!portfolioUrl}>
                   <UploadCloud className="h-4 w-4 sm:mr-2" />
                   <span className="hidden sm:inline">{fileName ? "Change" : "Upload"}</span>
                 </Button>
-                <Button type="submit" size="sm" variant="default" disabled={(!fileName && !portfolioUrl) || isPending}>
+                <Button type="submit" size="sm" className="bg-white w-full text-[#0E2931]" disabled={(!fileName && !portfolioUrl) || isPending}>
                   {isPending ? "AI Parsing..." : "Find"}
                 </Button>
               </div>
