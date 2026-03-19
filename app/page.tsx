@@ -16,6 +16,8 @@ export default function JobBoard() {
   const fileInputRef = React.useRef<HTMLInputElement>(null)
   const [jobs, setJobs] = React.useState<any[]>([])
   const [currentPage, setCurrentPage] = React.useState(1)
+  const [portfolioUrl, setPortfolioUrl] = React.useState<string>("")
+  const [detectedExpertise, setDetectedExpertise] = React.useState<string | null>(null)
   const [isPending, setIsPending] = React.useState<boolean>(false)
 
   const ITEMS_PER_PAGE = 5;
@@ -27,9 +29,11 @@ export default function JobBoard() {
     const savedFileName = localStorage.getItem("resume_filename")
     const savedJobs = localStorage.getItem("job_list")
     const savedPage = localStorage.getItem("current_page")
+    const savedExpertise = localStorage.getItem("detected_expertise")
 
     if (savedFileName) setFileName(savedFileName)
     if (savedPage) setCurrentPage(parseInt(savedPage, 10) || 1)
+    if (savedExpertise) setDetectedExpertise(savedExpertise)
     if (savedJobs) {
       try {
         setJobs(JSON.parse(savedJobs))
@@ -51,11 +55,13 @@ export default function JobBoard() {
     if (jobs.length > 0) {
       localStorage.setItem("job_list", JSON.stringify(jobs))
       localStorage.setItem("current_page", currentPage.toString())
+      if (detectedExpertise) localStorage.setItem("detected_expertise", detectedExpertise)
     } else {
       localStorage.removeItem("job_list")
       localStorage.removeItem("current_page")
+      localStorage.removeItem("detected_expertise")
     }
-  }, [fileName, jobs, currentPage, isMounted])
+  }, [fileName, jobs, currentPage, detectedExpertise, isMounted])
 
   const handleUploadClick = () => {
     fileInputRef.current?.click()
@@ -69,30 +75,63 @@ export default function JobBoard() {
   }
 
   const handleResumeSubmit = async (formData: FormData) => {
+
     setIsPending(true)
+
     setError(null)
 
     try {
-      const { data, error: serverError } = await handleResume(formData)
 
-      if (serverError) {
-        setError(serverError)
-        setJobs([])
-        setCurrentPage(1)
-      } else if (data) {
-        setJobs(data)
-        setCurrentPage(1)
+      const file = formData.get("resume") as File | null;
+
+      if (fileName && (!file || file.size === 0) && !portfolioUrl) {
+
+        setError("Please re-select your resume file. Browsers clear file selections when the page is reloaded.");
+
+        setIsPending(false);
+
+        return;
       }
-    } catch (err) {
-      setError("An unexpected error occurred")
+
+      const response = await handleResume(formData)
+
+      if (response.error) {
+
+        setError(response.error)
+
+        setJobs([])
+
+        setDetectedExpertise(null)
+
+        setCurrentPage(1)
+
+      } else if (response.data) {
+
+        setJobs(response.data)
+
+        setDetectedExpertise(response.expertise || null)
+
+        setCurrentPage(1)
+
+      }
+    } catch (err: any) {
+
+      setError(err.message || "An unexpected error occurred")
+
     } finally {
+
       setIsPending(false)
+
     }
+
   }
 
   const indexOfLastJob = currentPage * ITEMS_PER_PAGE;
+
   const indexOfFirstJob = indexOfLastJob - ITEMS_PER_PAGE;
+
   const currentJobs = jobs.slice(indexOfFirstJob, indexOfLastJob);
+
   const totalPages = Math.ceil(jobs.length / ITEMS_PER_PAGE);
 
   return (
@@ -113,8 +152,13 @@ export default function JobBoard() {
           </div>
 
           {(jobs.length > 0 || error) && (
-            <div className="mt-3 flex items-center gap-4">
+            <div className="mt-3 flex items-center gap-4 flex-wrap">
               {jobs.length > 0 && <p className="text-muted-foreground text-sm font-medium">Results Found: {jobs.length}</p>}
+              {detectedExpertise && (
+                <span className="inline-flex items-center rounded-full bg-indigo-50 dark:bg-indigo-900/40 px-3 py-1 text-xs font-semibold text-indigo-700 dark:text-indigo-300">
+                  Detected Expertise: {detectedExpertise}
+                </span>
+              )}
               {error && <p className="text-red-500 text-sm font-medium">{error}</p>}
             </div>
           )}
@@ -156,8 +200,8 @@ export default function JobBoard() {
                 {fileName ? "No matching jobs found" : "Ready to find your next role?"}
               </p>
               <p className="text-slate-400 dark:text-slate-500 mt-1 max-w-sm mx-auto">
-                {fileName 
-                  ? "Try uploading a different resume or wait for new positions." 
+                {fileName
+                  ? "Try uploading a different resume or wait for new positions."
                   : "Upload your resume using the form below to instantly discover top roles that fit your experience."}
               </p>
             </div>
@@ -209,25 +253,44 @@ export default function JobBoard() {
           <div className="bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-4 shadow-sm">
             <form action={handleResumeSubmit} className="flex flex-col sm:flex-row items-center justify-between gap-4">
               <input type="file" name="resume" className="hidden" ref={fileInputRef} onChange={handleFileChange} accept=".pdf,.docx" />
-              
+
               <div className="flex-1 text-left w-full sm:w-auto">
-                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Smart Job Match</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Upload your resume to instantly find matching roles.</p>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">AI Role Match</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Upload resume or paste portfolio link.</p>
+                  </div>
+
+                  {!fileName && (
+                    <Input
+                      type="url"
+                      name="portfolioUrl"
+                      placeholder="https://yourportfolio.com"
+                      value={portfolioUrl}
+                      onChange={(e) => setPortfolioUrl(e.target.value)}
+                      className="h-8 text-xs max-w-xs flex-1 bg-white dark:bg-slate-950"
+                    />
+                  )}
+                </div>
+
                 {fileName && (
-                  <div className="flex items-center gap-2 mt-1.5">
+                  <div className="flex items-center gap-2 mt-2">
                     <p className="text-xs text-green-600 font-medium flex items-center gap-1">
-                      <Send className="w-3 h-3"/> {fileName}
+                      <Send className="w-3 h-3" /> {fileName}
                     </p>
                     <button
                       type="button"
                       onClick={() => {
                         setFileName(null)
+                        setPortfolioUrl("")
+                        setDetectedExpertise(null)
                         setJobs([])
                         setCurrentPage(1)
                         if (fileInputRef.current) fileInputRef.current.value = ""
                         localStorage.removeItem("resume_filename")
                         localStorage.removeItem("job_list")
                         localStorage.removeItem("current_page")
+                        localStorage.removeItem("detected_expertise")
                       }}
                       className="text-slate-400 hover:text-red-500 transition-colors p-0.5 rounded-full hover:bg-red-50 dark:hover:bg-red-950 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-red-200"
                       title="Remove file"
@@ -238,13 +301,13 @@ export default function JobBoard() {
                 )}
               </div>
 
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <Button type="button" variant="outline" size="sm" onClick={handleUploadClick} disabled={isPending}>
+              <div className="flex items-center gap-2 w-full sm:w-[auto]">
+                <Button type="button" variant="outline" size="sm" onClick={handleUploadClick} disabled={isPending || !!portfolioUrl}>
                   <UploadCloud className="h-4 w-4 sm:mr-2" />
                   <span className="hidden sm:inline">{fileName ? "Change" : "Upload"}</span>
                 </Button>
-                <Button type="submit" size="sm" variant="default" disabled={!fileName || isPending}>
-                  {isPending ? "Waiting..." : "Find"}
+                <Button type="submit" size="sm" variant="default" disabled={(!fileName && !portfolioUrl) || isPending}>
+                  {isPending ? "AI Parsing..." : "Find"}
                 </Button>
               </div>
             </form>
