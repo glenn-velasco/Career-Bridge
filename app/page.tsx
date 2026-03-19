@@ -138,31 +138,54 @@ export default function JobBoard() {
   const totalPages = Math.ceil(jobs.length / ITEMS_PER_PAGE);
 
   return (
-    <div className="h-screen flex flex-col pt-2 sm:pt-4 pb-2 sm:pb-4 px-4 sm:px-6 lg:px-8 font-sans overflow-hidden">
-      <div className="mx-auto w-full max-w-3xl flex flex-col h-full min-h-0">
+    <div className="h-screen flex flex-col pt-2 sm:pt-4 pb-2 sm:pb-4 px-4 sm:px-6 lg:px-8 font-sans overflow-hidden 
+    bg-gradient-to-b from-[#0e2931] via-[#3ea8a7] to-[#0e2931]">
 
-        <div className="shrink-0 pb-2 border-b border-transparent">
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-                Open Positions
-              </h1>
-              <p className="text-zinc-500 dark:text-zinc-400 text-md sm:text-lg mt-1">
-                Find your next role and help us build the future.
-              </p>
+      <div 
+        className="absolute inset-0 z-0 opacity-40 pointer-events-none"
+        style={{ 
+          backgroundImage: `url('blob_bg.svg')`, 
+          backgroundSize: 'cover',
+          backgroundPosition: 'center' 
+        }}
+      />
+      <div className="mx-auto w-full max-w-3xl flex flex-col h-full min-h-0">
+        <div className="shrink-0 pb-6">
+          <div className="flex flex-col items-center justify-center text-center">
+            <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-white drop-shadow-md">
+              Open Positions
+            </h1>
+            <p className="text-slate-200/90 text-lg sm:text-xl mt-2 font-medium">
+              Begin Your Career Now
+            </p>
+            
+            <div className="absolute top-4 right-4 sm:top-8 sm:right-8">
+              <ModeToggle />
             </div>
-            <ModeToggle></ModeToggle>
           </div>
 
-          {(jobs.length > 0 || error) && (
-            <div className="mt-3 flex items-center gap-4 flex-wrap">
-              {jobs.length > 0 && <p className="text-muted-foreground text-sm font-medium">Results Found: {jobs.length}</p>}
+          {(jobs.length > 0 || error || detectedExpertise) && (
+            <div className="mt-10 flex flex-row items-center justify-between w-full px-1">
+
+              <div>
+                {jobs.length > 0 && (
+                  <p className="text-slate-300/80 text-sm font-semibold tracking-wide">
+                    Results Found: {jobs.length}
+                  </p>
+                )}
+                {error && <p className="text-red-400 text-sm font-medium">{error}</p>}
+              </div>
+
               {detectedExpertise && (
-                <span className="inline-flex items-center rounded-full bg-indigo-50 dark:bg-indigo-900/40 px-3 py-1 text-xs font-semibold text-indigo-700 dark:text-indigo-300">
-                  Detected Expertise: {detectedExpertise}
-                </span>
+                <div className="rounded-xl border border-white/20 px-4 py-2 shadow-xl transition-all bg-[#0e2931]/80">
+                  <p className="text-xs sm:text-sm font-bold text-white tracking-wider">
+                    Detected Expertise: 
+                    <span className="text-emerald-400 ml-2">
+                      {detectedExpertise}
+                    </span>
+                  </p>
+                </div>
               )}
-              {error && <p className="text-red-500 text-sm font-medium">{error}</p>}
             </div>
           )}
         </div>
@@ -170,27 +193,33 @@ export default function JobBoard() {
         <div className="flex-1 overflow-y-auto space-y-3 no-scroll-bar py-2 pr-2">
           {currentJobs.map((item, index) => (
             <div key={indexOfFirstJob + index} onClick={() => setSelectedJob(item)} className="cursor-pointer">
-              <Card className="shadow-sm hover:shadow-md transition-shadow border-zinc-200 dark:border-zinc-800 m-1">
+              <Card className="group relative overflow-hidden transition-all hover:scale-[1.01] 
+                  bg-white/10 backdrop-blur-md border border-white/20 shadow-xl m-4">
                 <CardHeader className="pb-3 px-4 pt-4 sm:px-6 sm:pt-6">
-                  <div className="flex flex-row items-start justify-between gap-4">
+                  <div className="flex justify-between">
                     <div className="space-y-1">
-                      <CardTitle className="text-lg sm:text-xl font-semibold text-zinc-900 dark:text-zinc-100 leading-tight">
+                      <CardTitle className="text-lg sm:text-xl font-bold text-white tracking-tight">
                         {item.title || "Untitled Position"}
                       </CardTitle>
-                      <CardDescription className="text-sm font-medium text-zinc-500">
+                      <CardDescription className="text-sm italic text-slate-300/80">
                         {item.companyName || item.advertiser?.description || "Unknown Company"} • {item.locations?.[0]?.label || "Remote"}
+
                       </CardDescription>
                     </div>
 
-                    <span className="shrink-0 inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">
-                      {item.workTypes?.[0]}
-                    </span>
+                    <div className="flex flex-col items-end gap-2">
+                      <span className="shrink-0 inline-flex items-center rounded-lg bg-[#326DB0] px-3 py-1 text-xs font-bold text-white">
+                        {item.workTypes?.[0] || "Full-Time"} 
+                      </span>
+                    </div>
                   </div>
                 </CardHeader>
-
-                <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6 pt-0">
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed line-clamp-2">
-                    {item.teaser || "No description available."}
+                <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6 pt-0 flex justify-between items-end">
+                  <p className="text-sm font-bold text-white/90">
+                    {item.locations?.[0]?.label || "Remote"}
+                  </p>
+                  <p className="text-xs text-white/60">
+                    {item.listingDateDisplay || "Listing Date"}
                   </p>
                 </CardContent>
               </Card>
