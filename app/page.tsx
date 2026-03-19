@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { UploadCloud, Send } from "lucide-react"
+import { UploadCloud, Send, X } from "lucide-react"
 import Link from "next/link"
 import { handleResume } from "@/lib/actions";
 
@@ -15,7 +15,10 @@ export default function JobBoard() {
   const [fileName, setFileName] = React.useState<string | null>(null)
   const fileInputRef = React.useRef<HTMLInputElement>(null)
   const [jobs, setJobs] = React.useState<any[]>([])
+  const [currentPage, setCurrentPage] = React.useState(1)
   const [isPending, setIsPending] = React.useState<boolean>(false)
+
+  const ITEMS_PER_PAGE = 5;
   const [error, setError] = React.useState<string | null>(null)
   const [isMounted, setIsMounted] = React.useState(false)
 
@@ -23,8 +26,10 @@ export default function JobBoard() {
     setIsMounted(true)
     const savedFileName = localStorage.getItem("resume_filename")
     const savedJobs = localStorage.getItem("job_list")
+    const savedPage = localStorage.getItem("current_page")
 
     if (savedFileName) setFileName(savedFileName)
+    if (savedPage) setCurrentPage(parseInt(savedPage, 10) || 1)
     if (savedJobs) {
       try {
         setJobs(JSON.parse(savedJobs))
@@ -45,10 +50,12 @@ export default function JobBoard() {
 
     if (jobs.length > 0) {
       localStorage.setItem("job_list", JSON.stringify(jobs))
+      localStorage.setItem("current_page", currentPage.toString())
     } else {
       localStorage.removeItem("job_list")
+      localStorage.removeItem("current_page")
     }
-  }, [fileName, jobs, isMounted])
+  }, [fileName, jobs, currentPage, isMounted])
 
   const handleUploadClick = () => {
     fileInputRef.current?.click()
@@ -71,8 +78,10 @@ export default function JobBoard() {
       if (serverError) {
         setError(serverError)
         setJobs([])
+        setCurrentPage(1)
       } else if (data) {
         setJobs(data)
+        setCurrentPage(1)
       }
     } catch (err) {
       setError("An unexpected error occurred")
@@ -81,31 +90,44 @@ export default function JobBoard() {
     }
   }
 
+  const indexOfLastJob = currentPage * ITEMS_PER_PAGE;
+  const indexOfFirstJob = indexOfLastJob - ITEMS_PER_PAGE;
+  const currentJobs = jobs.slice(indexOfFirstJob, indexOfLastJob);
+  const totalPages = Math.ceil(jobs.length / ITEMS_PER_PAGE);
+
   return (
-    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 font-sans">
+    <div className="h-screen flex flex-col pt-2 sm:pt-4 pb-2 sm:pb-4 px-4 sm:px-6 lg:px-8 font-sans overflow-hidden">
+      <div className="mx-auto w-full max-w-3xl flex flex-col h-full min-h-0">
 
-      <div className="mx-auto w-full max-w-3xl space-y-8">
+        <div className="shrink-0 pb-2 border-b border-transparent">
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+                Open Positions
+              </h1>
+              <p className="text-slate-500 dark:text-slate-400 text-md sm:text-lg mt-1">
+                Find your next role and help us build the future.
+              </p>
+            </div>
+            <ModeToggle></ModeToggle>
+          </div>
 
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
-            Open Positions
-          </h1>
-          <p className="text-slate-500 dark:text-slate-400 text-lg">
-            Find your next role and help us build the future.
-          </p>
-
-          <p className="text-muted-foreground text-md mt-5">Results Found: {jobs.length}</p>
-          {error && <p className="text-red-500 text-sm">{error}</p>}
+          {(jobs.length > 0 || error) && (
+            <div className="mt-3 flex items-center gap-4">
+              {jobs.length > 0 && <p className="text-muted-foreground text-sm font-medium">Results Found: {jobs.length}</p>}
+              {error && <p className="text-red-500 text-sm font-medium">{error}</p>}
+            </div>
+          )}
         </div>
 
-        <div className="space-y-4 overflow-y-auto max-h-[500px] no-scroll-bar">
-          {jobs.map((item, index) => (
-            <Link key={index} href="/job-info" /*target="_blank"*/>
-              <Card className="shadow-sm hover:shadow-md transition-shadow border-slate-200 dark:border-slate-800 m-3">
-                <CardHeader className="pb-3">
+        <div className="flex-1 overflow-y-auto space-y-3 no-scroll-bar py-2 pr-2">
+          {currentJobs.map((item, index) => (
+            <Link key={indexOfFirstJob + index} href="/job-info">
+              <Card className="shadow-sm hover:shadow-md transition-shadow border-slate-200 dark:border-slate-800 m-1">
+                <CardHeader className="pb-3 px-4 pt-4 sm:px-6 sm:pt-6">
                   <div className="flex flex-row items-start justify-between gap-4">
-                    <div className="space-y-1.5">
-                      <CardTitle className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+                    <div className="space-y-1">
+                      <CardTitle className="text-lg sm:text-xl font-semibold text-slate-900 dark:text-slate-100 leading-tight">
                         {item.title || "Untitled Position"}
                       </CardTitle>
                       <CardDescription className="text-sm font-medium text-slate-500">
@@ -113,14 +135,14 @@ export default function JobBoard() {
                       </CardDescription>
                     </div>
 
-                    <span className="shrink-0 inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">
+                    <span className="shrink-0 inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">
                       {item.workTypes?.[0]}
                     </span>
                   </div>
                 </CardHeader>
 
-                <CardContent>
-                  <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-3">
+                <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6 pt-0">
+                  <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-2">
                     {item.teaser || "No description available."}
                   </p>
                 </CardContent>
@@ -128,7 +150,17 @@ export default function JobBoard() {
             </Link>
           ))}
           {!isPending && jobs.length === 0 && !error && (
-            <p className="text-center text-slate-500 py-10">No jobs found. Try uploading your resume to see matches.</p>
+            <div className="text-center py-16 px-4">
+              <UploadCloud className="mx-auto h-12 w-12 text-slate-200 dark:text-slate-800 mb-4" />
+              <p className="text-slate-600 dark:text-slate-300 text-lg font-medium">
+                {fileName ? "No matching jobs found" : "Ready to find your next role?"}
+              </p>
+              <p className="text-slate-400 dark:text-slate-500 mt-1 max-w-sm mx-auto">
+                {fileName 
+                  ? "Try uploading a different resume or wait for new positions." 
+                  : "Upload your resume using the form below to instantly discover top roles that fit your experience."}
+              </p>
+            </div>
           )}
           {isPending && (
             <div className="flex justify-center py-10">
@@ -137,61 +169,88 @@ export default function JobBoard() {
           )}
         </div>
 
-        <Card className="mt-8 border-slate-200 shadow-sm dark:border-slate-800">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-              Submit your application
-            </CardTitle>
-            <CardDescription>
-              Upload your resume and details to find matching jobs.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form action={handleResumeSubmit} className="space-y-4">
+        {totalPages > 1 && !isPending && (
+          <div className="shrink-0 border-t border-slate-200 dark:border-slate-800 flex justify-center items-center gap-2 py-3 mt-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+            >
+              Prev
+            </Button>
+
+            <div className="flex gap-1 flex-wrap justify-center">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <Button
+                  key={page}
+                  variant={currentPage === page ? "default" : "ghost"}
+                  size="sm"
+                  className="w-8 h-8 p-0 rounded-full"
+                  onClick={() => setCurrentPage(page)}
+                >
+                  {page}
+                </Button>
+              ))}
+            </div>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </Button>
+          </div>
+        )}
+
+        <div className="shrink-0 pb-2">
+          <div className="bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-4 shadow-sm">
+            <form action={handleResumeSubmit} className="flex flex-col sm:flex-row items-center justify-between gap-4">
               <input type="file" name="resume" className="hidden" ref={fileInputRef} onChange={handleFileChange} accept=".pdf,.docx" />
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Button type="button" variant="outline" className="flex items-center gap-2" onClick={handleUploadClick} disabled={isPending}>
-                  <UploadCloud className="h-4 w-4" />
-                  {fileName ? "Change Resume" : "Upload Resume"}
-                </Button>
-                <Button type="submit" className="flex items-center gap-2" variant="default" disabled={!fileName || isPending}>
-                  {isPending ? "Processing..." : (
-                    <>
-                      <Send className="h-4 w-4" />
-                      Find Jobs
-                    </>
-                  )}
-                </Button>
-                
-                {(fileName || jobs.length > 0) && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="text-slate-500 hover:text-red-500"
-                    onClick={() => {
-                      setFileName(null)
-                      setJobs([])
-                      localStorage.removeItem("resume_filename")
-                      localStorage.removeItem("job_list")
-                    }}
-                  >
-                    Clear Results
-                  </Button>
+              
+              <div className="flex-1 text-left w-full sm:w-auto">
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Smart Job Match</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Upload your resume to instantly find matching roles.</p>
+                {fileName && (
+                  <div className="flex items-center gap-2 mt-1.5">
+                    <p className="text-xs text-green-600 font-medium flex items-center gap-1">
+                      <Send className="w-3 h-3"/> {fileName}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFileName(null)
+                        setJobs([])
+                        setCurrentPage(1)
+                        if (fileInputRef.current) fileInputRef.current.value = ""
+                        localStorage.removeItem("resume_filename")
+                        localStorage.removeItem("job_list")
+                        localStorage.removeItem("current_page")
+                      }}
+                      className="text-slate-400 hover:text-red-500 transition-colors p-0.5 rounded-full hover:bg-red-50 dark:hover:bg-red-950 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-red-200"
+                      title="Remove file"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
                 )}
               </div>
 
-              {fileName && (
-                <div className="flex items-center gap-2 text-sm text-green-600 animate-in fade-in slide-in-from-top-1">
-                  <Send className="h-4 w-4" />
-                  Selected: {fileName}
-                </div>
-              )}
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <Button type="button" variant="outline" size="sm" onClick={handleUploadClick} disabled={isPending}>
+                  <UploadCloud className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">{fileName ? "Change" : "Upload"}</span>
+                </Button>
+                <Button type="submit" size="sm" variant="default" disabled={!fileName || isPending}>
+                  {isPending ? "Waiting..." : "Find"}
+                </Button>
+              </div>
             </form>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <ModeToggle></ModeToggle>
       </div>
     </div>
   )

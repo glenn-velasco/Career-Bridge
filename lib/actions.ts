@@ -9,10 +9,10 @@ export async function handleResume(formData: FormData) {
     const searchQuery = "Engineer";
 
     const res = await fetch(
-        `https://jobstreet.p.rapidapi.com/search?query=${encodeURIComponent(searchQuery)}&countryCode=PH`,
+        `https://jobstreet.p.rapidapi.com/search?query=${encodeURIComponent(searchQuery)}&countryCode=my`,
         {
             headers: {
-                'x-rapidapi-key': "b9a9bf2daamshc0bf31668f50813p19b0e9jsn4746a4fc3f1e",
+                'x-rapidapi-key': "7ae1bfe668msh42c7a53eee807d5p1af5b6jsnb9edd51c4541",
                 'x-rapidapi-host': 'jobstreet.p.rapidapi.com'
             }
         }
