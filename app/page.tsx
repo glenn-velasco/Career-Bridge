@@ -47,18 +47,18 @@ export default function JobBoard() {
   }, [])
 
  // Add this block after your second useEffect
-  React.useEffect(() => {
-    if (isMounted && portfolioUrl === "" && !fileName) {
-      // Clear all results from the UI
-      setJobs([]);
-      setDetectedExpertise(null);
-      setError(null);
-      // Clear memory so it doesn't come back on refresh
-      localStorage.removeItem("job_list");
-      localStorage.removeItem("detected_expertise");
-      localStorage.removeItem("current_page");
-    }
-  }, [portfolioUrl, fileName, isMounted]);
+  // React.useEffect(() => {
+  //   if (isMounted && portfolioUrl === "" && !fileName) {
+  //     // Clear all results from the UI
+  //     setJobs([]);
+  //     setDetectedExpertise(null);
+  //     setError(null);
+  //     // Clear memory so it doesn't come back on refresh
+  //     localStorage.removeItem("job_list");
+  //     localStorage.removeItem("detected_expertise");
+  //     localStorage.removeItem("current_page");
+  //   }
+  // }, [portfolioUrl, fileName, isMounted]);
 
   React.useEffect(() => {
     if (!isMounted) return
@@ -151,6 +151,8 @@ export default function JobBoard() {
 
   const totalPages = Math.ceil(jobs.length / ITEMS_PER_PAGE);
 
+  const marginBot = (jobs.length === 0 && error) ? "mb-40" : "mb-10";  
+
   return (
     <div className="h-screen flex flex-col py-[10] px-[20] lg:px-8 font-sans overflow-hidden 
     bg-linear-to-b from-[#0e2931] via-[#3ea8a7] to-[#0e2931]">
@@ -163,41 +165,39 @@ export default function JobBoard() {
           backgroundPosition: 'center' 
         }}
       />
-        
       <div className="mx-auto my-auto w-full max-w-3xl flex flex-col justify-center h-full min-h-0 m z-1">
         <div className="shrink-0">
-          {(jobs.length == 0 )&& (
-            <div className="flex flex-col items-center justify-center text-center mb-40">
+          
+          {(jobs.length == 0) && (
+            <div className={`flex flex-col items-center justify-center text-center ${marginBot}`}>
             <h1 className="text-3xl sm:text-6xl font-bold text-white drop-shadow-md">
               Begin Your Career Now
             </h1>
             <p className="text-slate-200/90 text-1xl sm:text-2xl mt-3">
-              Find Your Next Role and Build Our Future
+              Find Your Next Role and Build Our Futur
             </p>
-            
             <div className="absolute top-4 right-4 sm:top-8 sm:right-8">
               {/* <ModeToggle /> */}
             </div>
           </div>
           )}
-          {/* Design when there are jobs showing */}
+          
           {(jobs.length > 0)&& (
             <div className="flex flex-col items-center justify-center text-center mt-10">
-            <h1 className="text-xl sm:text-5xl font-bold text-white drop-shadow-md ">
-              Open Positions
-            </h1>
-            <p className="text-slate-200/90 text-xl sm:text-xl mt-3">
-              Begin Your Career Now
-            </p>
-            
-            <div className="absolute top-4 right-4 sm:top-8 sm:right-8">
-              {/* <ModeToggle /> */}
+              <h1 className="text-xl sm:text-5xl font-bold text-white drop-shadow-md ">
+                Open Positions
+              </h1>
+              <p className="text-slate-200/90 text-xl sm:text-xl mt-3">
+                Begin Your Career Now
+              </p>
+              <div className="absolute top-4 right-4 sm:top-8 sm:right-8">
+                {/* <ModeToggle /> */}
+              </div>
             </div>
-          </div>
           )}
 
           {(jobs.length > 0 || error || detectedExpertise) && (
-            <div className="mt-10 flex flex-row items-center justify-around w-full ">
+            <div className="mt-10 flex flex-row items-center justify-around w-full pb-2">
               
               <div className="w-full flex flex-col items-start justify-center space-y-2 pt-2">
                 {jobs.length > 0 && (
@@ -228,7 +228,7 @@ export default function JobBoard() {
             </div>
           )}
         </div>
-
+        
         <div className=" overflow-y-auto space-y-3 no-scroll-bar">
           {currentJobs.map((item, index) => (
             <div key={indexOfFirstJob + index} onClick={() => setSelectedJob(item)} className="cursor-pointer">
@@ -237,35 +237,33 @@ export default function JobBoard() {
                 <CardHeader className="">
                   <div className="flex justify-between">
                     <div className="space-y-1">
-                      <CardTitle className="text-lg sm:text-xl font-bold text-[#265473] tracking-tight">
+                      <CardTitle className="text-lg sm:text-xl font-bold text-[#265473] tracking-tight text-pretty">
                         {item.title || "Untitled Position"}
                       </CardTitle>
-                      <CardDescription className="text-sm text-white">
-                        {item.companyName || item.advertiser?.description || "Unknown Company"} • {item.locations?.[0]?.label || "Location"} | <span className="font-extrabold">{item.workArrangements.data[0].label.text || "Arrangements"}</span>
-
-                      </CardDescription>
                     </div>
-                    <div className="flex items-center gap-4 shrink-0">
+                    <div className="flex items-start gap-4 shrink-0">
                       <span className="shrink-0 inline-flex items-center rounded-lg bg-[#326DB0] px-3 py-1 text-xs font-bold text-white">
                         {item.workTypes?.[0] || "Full-Time"} 
                       </span>
-                      <p className="text-xs text-white/60">
+                      <p className="text-xs text-white">
                         {item.listingDateDisplay || "Listing Date"}
                       </p>
                     </div>
-                  </div>
+                  </div>           
+                  <CardDescription className="text-sm text-white">
+                    {item.companyName || item.advertiser?.description || "Unknown Company"} • {item.locations?.[0]?.label || "Location"} | <span className="font-extrabold">{item.workArrangements?.data[0]?.label?.text || "Arrangements"}</span>
+                  </CardDescription>
                 </CardHeader>
                 <CardContent >
-                  <p className="text-xs text-white/60">
+                  <p className="text-xs text-white/70">
                     {item.teaser || "Description"}
                   </p>
-                  
                 </CardContent>
               </Card>
             </div>
           ))}
           {!isPending && jobs.length === 0 && !error && (
-            <div className="text-center py-16 px-4">
+            <div className="text-center pb-15 px-4">
               <Card className="group relative overflow-hidden bg-white/25 backdrop-blur-md border border-white shadow-xl m-4 ">
                   <p className="text-[#0E2931] dark:text-[#0E2931] text-2xl font-extrabold ">
                     {fileName ? "No matching jobs found" : "Submit Your Application"}
@@ -275,8 +273,7 @@ export default function JobBoard() {
                       ? "Try uploading a different resume or wait for new positions."
                       : "Upload your resume or paste portfolio link below."}
                   </p>
-              </Card>
-              
+                  </Card>
             </div>
           )}
           {isPending && (
@@ -295,7 +292,7 @@ export default function JobBoard() {
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
               disabled={currentPage === 1}
             >
-              Prev
+              <ChevronLeft/>
             </Button>
 
             <div className="flex gap-1 flex-wrap justify-center">
@@ -375,11 +372,11 @@ export default function JobBoard() {
               </div>
 
               <div className="flex flex-col items-center gap-2 w-full sm:w-[auto]">
-                <Button type="button" className="bg-[#91B032] text-white w-full hover:bg-[#C5F042]" size="sm" onClick={handleUploadClick} disabled={isPending || !!portfolioUrl}>
+                <Button type="button" className="bg-[#91B032] text-white w-full hover:bg-[#326DB0]" size="sm" onClick={handleUploadClick} disabled={isPending || !!portfolioUrl}>
                   <UploadCloud className="h-4 w-4 sm:mr-2" />
                   <span className="hidden sm:inline">{fileName ? "Change" : "Upload"}</span>
                 </Button>
-                <Button type="submit" size="sm" className="bg-white w-full text-[#0E2931]" disabled={(!fileName && !portfolioUrl) || isPending}>
+                <Button type="submit" size="sm" className="bg-white w-full text-[#0E2931] hover:bg-[#3EA8A7]" disabled={(!fileName && !portfolioUrl) || isPending}>
                   {isPending ? "AI Parsing..." : "Find"}
                 </Button>
               </div>
