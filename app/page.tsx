@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { UploadCloud, Send, X, Bot } from "lucide-react"
+import { UploadCloud, Send, X, Bot, ChevronLeft, ChevronRight} from "lucide-react"
 import Link from "next/link"
 import { handleResume } from "@/lib/actions";
 import { InterviewChat } from "@/components/ui/interview-chat";
@@ -139,7 +139,7 @@ export default function JobBoard() {
 
   return (
     <div className="h-screen flex flex-col py-[10] px-[20] lg:px-8 font-sans overflow-hidden 
-    bg-gradient-to-b from-[#0e2931] via-[#3ea8a7] to-[#0e2931]">
+    bg-linear-to-b from-[#0e2931] via-[#3ea8a7] to-[#0e2931]">
 
       <div 
         className="absolute inset-0 z-0 opacity-35 pointer-events-none" 
@@ -153,7 +153,7 @@ export default function JobBoard() {
       <div className="mx-auto my-auto w-full max-w-3xl flex flex-col justify-center h-full min-h-0 m z-1">
         <div className="shrink-0">
           {(jobs.length == 0 )&& (
-            <div className="flex flex-col items-center justify-center text-center">
+            <div className="flex flex-col items-center justify-center text-center mb-40">
             <h1 className="text-3xl sm:text-6xl font-bold text-white drop-shadow-md">
               Begin Your Career Now
             </h1>
@@ -195,8 +195,8 @@ export default function JobBoard() {
               </div>
               {error &&
               <div className="absolute w-full flex flex-col items-center justify-between space-y-2">
-                <Card className=" group relative overflow-hidden bg-white/15 backdrop-blur-md border border-white shadow-xl m-4 p-5"> 
-                    <p className="text-[#bd1212] text-xl font-bold">{error}</p>
+                <Card className=" group relative overflow-hidden bg-white/15 backdrop-blur-md border border-white shadow-xl p-5 mb-40"> 
+                    <p className="text-[#ff2222] text-xl font-bold">{error}</p>
                 </Card>
               </div>
                 
@@ -227,7 +227,7 @@ export default function JobBoard() {
                         {item.title || "Untitled Position"}
                       </CardTitle>
                       <CardDescription className="text-sm text-white">
-                        {item.companyName || item.advertiser?.description || "Unknown Company"} • {item.locations?.[0]?.label || "Location"} | <span className="font-extrabold">{item.workArrangements.data[0].label.text || "Arrangements"}</span>
+                        {item.companyName || item.advertiser?.description || "Unknown Company"} • {item.locations?.[0]?.label || "Location"} | <span className="font-extrabold">{item.workArrangements?.data[0]?.label.text || "Arrangements"}</span>
 
                       </CardDescription>
                     </div>
@@ -274,14 +274,14 @@ export default function JobBoard() {
         </div>
 
         {totalPages > 1 && !isPending && (
-          <div className="shrink-0 border-t border-white/20 flex justify-center items-center gap-2 py-3 mt-1">
+          <div className="shrink-0 border-t border-white/20 flex justify-center items-center gap-2 py-2 mt-1">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
               disabled={currentPage === 1}
             >
-              Prev
+              <ChevronLeft/>
             </Button>
 
             <div className="flex gap-1 flex-wrap justify-center">
@@ -290,7 +290,7 @@ export default function JobBoard() {
                   key={page}
                   variant={currentPage === page ? "default" : "ghost"}
                   size="sm"
-                  className="w-8 h-8 p-0 rounded-full"
+                  className="w-8 h-8 p-0 rounded-full "
                   onClick={() => setCurrentPage(page)}
                 >
                   {page}
@@ -304,13 +304,13 @@ export default function JobBoard() {
               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
             >
-              Next
+              <ChevronRight/>
             </Button>
           </div>
         )}
 
-        <div className="shrink-0 pt-10">
-          <div className="border border-white rounded-xl p-4 sm:p-7 shadow-sm bg-[#0E2931]">
+        <div className="shrink-0 pt-2">
+          <div className="border border-white rounded-xl p-4 shadow-sm bg-[#0E2931] mb-10">
             <form action={handleResumeSubmit} className="flex flex-col sm:flex-row items-center justify-between gap-4">
               <input type="file" name="resume" className="hidden" ref={fileInputRef} onChange={handleFileChange} accept=".pdf,.docx" />
 
@@ -361,7 +361,7 @@ export default function JobBoard() {
               </div>
 
               <div className="flex flex-col items-center gap-2 w-full sm:w-[auto]">
-                <Button type="button" className="bg-[#91B032] text-white w-full" size="sm" onClick={handleUploadClick} disabled={isPending || !!portfolioUrl}>
+                <Button type="button" className="bg-[#91B032] text-white w-full hover:bg-[#C5F042]" size="sm" onClick={handleUploadClick} disabled={isPending || !!portfolioUrl}>
                   <UploadCloud className="h-4 w-4 sm:mr-2" />
                   <span className="hidden sm:inline">{fileName ? "Change" : "Upload"}</span>
                 </Button>
@@ -377,7 +377,7 @@ export default function JobBoard() {
 
       {selectedJob && (
         <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm" onClick={() => { setSelectedJob(null); setIsInterviewing(false); }}>
-          <div className={`bg-white dark:bg-zinc-950 rounded-xl shadow-xl w-full ${isInterviewing ? 'max-w-4xl h-[85vh]' : 'max-w-2xl max-h-[90vh]'} flex flex-col overflow-hidden border border-zinc-200 dark:border-zinc-800 transition-all duration-300`} onClick={e => e.stopPropagation()}>
+          <div className={`bg-[#0E2931] rounded-4xl shadow-xl w-full ${isInterviewing ? 'max-w-4xl h-[85vh]' : 'max-w-4xl max-h-[90vh]'} flex flex-col overflow-hidden border-3 border-white/70 transition-all duration-300`} onClick={e => e.stopPropagation()}>
             
             {isInterviewing ? (
               <InterviewChat 
