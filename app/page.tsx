@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { UploadCloud, Send, X, Bot, ChevronLeft, ChevronRight} from "lucide-react"
+import { UploadCloud, Send, X, Bot, ChevronLeft, ChevronRight, MapPinned, BriefcaseBusiness, Clock3, Banknote} from "lucide-react"
 import Link from "next/link"
 import { handleResume } from "@/lib/actions";
 import { InterviewChat } from "@/components/ui/interview-chat";
@@ -47,18 +47,18 @@ export default function JobBoard() {
   }, [])
 
 //  Add this block after your second useEffect
-  React.useEffect(() => {
-    if (isMounted && portfolioUrl === "" && !fileName) {
-      // Clear all results from the UI
-      setJobs([]);
-      setDetectedExpertise(null);
-      setError(null);
-      // Clear memory so it doesn't come back on refresh
-      localStorage.removeItem("job_list");
-      localStorage.removeItem("detected_expertise");
-      localStorage.removeItem("current_page");
-    }
-  }, [portfolioUrl, fileName, isMounted]);
+  // React.useEffect(() => {
+  //   if (isMounted && portfolioUrl === "" && !fileName) {
+  //     // Clear all results from the UI
+  //     setJobs([]);
+  //     setDetectedExpertise(null);
+  //     setError(null);
+  //     // Clear memory so it doesn't come back on refresh
+  //     localStorage.removeItem("job_list");
+  //     localStorage.removeItem("detected_expertise");
+  //     localStorage.removeItem("current_page");
+  //   }
+  // }, [portfolioUrl, fileName, isMounted]);
 
   React.useEffect(() => {
     if (!isMounted) return
@@ -327,7 +327,7 @@ export default function JobBoard() {
 
               <div className="flex-1 text-left w-full sm:w-auto">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                  <div className="flex-grow space-y-2" >
+                  <div className="grow space-y-2" >
                     <h3 className="text-xl font-semibold text-zinc-100 px-2">AI Role Match</h3>
                     <p className="text-xs text-zinc-500 mt-0.5"></p>
                     {!fileName && (
@@ -371,7 +371,7 @@ export default function JobBoard() {
                   )}
               </div>
 
-              <div className="flex flex-col items-center gap-2 w-full sm:w-[auto]">
+              <div className="flex flex-col items-center gap-2 w-full sm:w-auto">
                 <Button type="button" className="bg-[#91B032] text-white w-full hover:bg-[#326DB0]" size="sm" onClick={handleUploadClick} disabled={isPending || !!portfolioUrl}>
                   <UploadCloud className="h-4 w-4 sm:mr-2" />
                   <span className="hidden sm:inline">{fileName ? "Change" : "Upload"}</span>
@@ -386,9 +386,11 @@ export default function JobBoard() {
 
       </div>
 
+
+
       {selectedJob && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm" onClick={() => { setSelectedJob(null); setIsInterviewing(false); }}>
-          <div className={`bg-[#0E2931] rounded-4xl shadow-xl w-full ${isInterviewing ? 'max-w-4xl h-[85vh]' : 'max-w-4xl max-h-[90vh]'} flex flex-col overflow-hidden border-3 border-white/70 transition-all duration-300`} onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm p-3 sm:p-10" onClick={() => { setSelectedJob(null); setIsInterviewing(false); }}>
+          <div className={`rounded-4xl shadow-xl w-full ${isInterviewing ? 'max-w-4xl h-[85vh]' : 'max-w-4xl max-h-[90vh]'} flex flex-col overflow-hidden border-3 border-white/70 transition-all duration-300`} onClick={e => e.stopPropagation()}>
             
             {isInterviewing ? (
               <InterviewChat 
@@ -398,54 +400,77 @@ export default function JobBoard() {
                 onClose={() => setIsInterviewing(false)}
               />
             ) : (
-              <>
-                <div className="flex items-center justify-between p-4 sm:p-6 border-b border-zinc-100 dark:border-zinc-800">
-                  <h2 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-50 line-clamp-1 pr-4">
-                    {selectedJob.title || "Untitled Position"}
-                  </h2>
-                  <button onClick={() => setSelectedJob(null)} className="shrink-0 p-2 -mr-2 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-                <div className="overflow-y-auto p-4 sm:p-6 flex-1">
-                  <div className="flex flex-wrap items-center gap-3 mb-6">
-                    <span className="inline-flex items-center rounded-md bg-zinc-100 dark:bg-zinc-800 px-2.5 py-1 text-sm font-medium text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700">
-                      {selectedJob.companyName || selectedJob.advertiser?.description || "Unknown Company"}
-                    </span>
-                    <span className="inline-flex items-center rounded-md bg-zinc-100 dark:bg-zinc-800 px-2.5 py-1 text-sm font-medium text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700">
-                      {selectedJob.locations?.[0]?.label || "Remote"}
-                    </span>
-                    <span className="inline-flex items-center rounded-md bg-blue-50 dark:bg-blue-900/30 px-2.5 py-1 text-sm font-medium text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
-                      {selectedJob.workTypes?.[0] || "Full-time"}
-                    </span>
-                  </div>
-                  <div className="space-y-4">
+              <div>
+                <div className="flex flex-col h-[60vh] bg-[#0E2931]/90 border border-white/10 rounded-2xl overflow-hidden">
+                  <div className="flex items-start justify-between p-6 pb-4 border-b border-white/10 shrink-0">
                     <div>
-                      <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Description</h3>
-                      <div className="text-zinc-600 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap">
+                      <h2 className="text-xl sm:text-2xl font-bold text-white pr-4 text-pretty">
+                        {selectedJob.title || "Untitled Position"}
+                      </h2>
+                      <div className="mt-5 pl-3">
+                        <p className="font-medium">
+                          {selectedJob.companyName || selectedJob.advertiser?.description || "Unknown Company"}
+                        </p>
+                        <p className="text-sm pt-1 text-white/60">
+                          {selectedJob.listingDateDisplay}
+                        </p>
+                      </div>
+                      
+                    </div>
+                    <button onClick={() => setSelectedJob(null)} className="p-2 text-red-500 hover:text-white hover:bg-[#981616] rounded-full transition-all">
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                  
+                  <div className="flex-1 overflow-y-auto p-6 space-y-6 px-9">
+                    <div className="flex  flex-wrap items-start gap-3 mb">
+                      
+                      <p className="inline-flex items-center rounded-md bg-white/20 px-2.5 py-1 text-sm font-bold text-white border border-white/50">
+                        
+                        <MapPinned className="w-5 h-5"/>
+                        <span className="pl-2">{selectedJob.workArrangements?.data[0]?.label?.text || "Arrangements"}</span>
+                      </p>
+
+                      <p className="inline-flex items-center rounded-md bg-[#3EA8A7]/20 px-2.5 py-1 text-sm font-bold text-[#56dcda] border border-[#3EA8A7]/30 capitalize">
+                        <BriefcaseBusiness className="w-5 h-5"/>
+                        <span className="pl-2">{selectedJob.roleId|| "Role"}</span>
+                      </p>
+
+                      <p className="inline-flex items-center rounded-md bg-blue-900/30 px-2.5 py-1 text-sm font-bold text-blue-300 border border-blue-700">
+                        <Clock3 className="w-5 h-5"/>
+                        <span className="pl-2">{selectedJob.workTypes|| "Type"}</span>
+                      </p>
+
+                      <p className="inline-flex items-center rounded-md bg-[#91B032]/20 px-2.5 py-1 text-sm font-bold text-[#a4c739] border border-[#91B032]/40">
+                        <Banknote className="w-5 h-5"/>
+                        <span className="pl-2">{selectedJob.slaryLabel|| "$xxx - $xxx"}</span>
+                      </p>
+
+                    </div>
+
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold text-white">Description</h3>
+                      <div className="text-white/70 leading-relaxed whitespace-pre-wrap">
                         {selectedJob.teaser || "No description available."}
                       </div>
                     </div>
-                  </div>
-                </div>
-                <div className="p-4 sm:p-6 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 flex flex-wrap justify-between items-center gap-3">
-                  <Button variant="outline" className="text-blue-600 border-blue-200 dark:border-blue-800 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50" onClick={() => setIsInterviewing(true)}>
-                    <Bot className="w-4 h-4 mr-2" />
-                    Practice Interview
-                  </Button>
-                  
-                  <div className="flex gap-3">
-                    <Button variant="ghost" onClick={() => setSelectedJob(null)}>
-                      Close
-                    </Button>
                     {selectedJob.url && (
-                      <Button onClick={() => window.open(selectedJob.url, '_blank')}>
+                      <Button className="w-full bg-[#91B032] hover:bg-[#326DB0] text-white" onClick={() => window.open(selectedJob.url, '_blank')}>
                         Apply Now
                       </Button>
                     )}
                   </div>
+                  <div className="p-6 border-t border-white/10 flex flex-col items-center gap-3 shrink-0">
+                    <Button 
+                      className="w-full bg-[#91B032] text-white hover:bg-[#326DB0]" 
+                      onClick={() => setIsInterviewing(true)}
+                    >
+                      <Bot className="w-4 h-4 mr-2" />
+                      Practice Interview
+                    </Button>
+                  </div>
                 </div>
-              </>
+              </div>
             )}
           </div>
         </div>
