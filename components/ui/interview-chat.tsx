@@ -295,7 +295,7 @@ export function InterviewChat({ jobTitle, companyName, jobDescription, onClose }
               type="submit"
               size="icon"
               disabled={!input.trim() || isLoading}
-              className="w-[36px] h-[36px] rounded-full shrink-0 bg-[#308182] hover:bg-blue-700 text-white shadow-sm"
+              className="w-[36px] h-[36px] rounded-full shrink-0 bg-[#308182] hover:bg-[#91B032] text-white shadow-sm"
             >
               {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4 shadow-[0_2px_4px_rgba(0,0,0,0.1)] -ml-0.5" />}
             </Button>
