@@ -51,7 +51,7 @@ export default function JobBoard() {
       try {
         setJobs(JSON.parse(savedJobs))
       } catch (e) {
-        console.error("Failed to parse saved jobs", e)
+        console.error("An unknown error occurred", e)
       }
     }
   }, [])

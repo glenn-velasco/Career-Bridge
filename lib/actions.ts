@@ -29,12 +29,12 @@ export async function handleResume(formData: FormData) {
             try {
                 const urlToFetch = portfolioUrl.startsWith('http') ? portfolioUrl : `https://${portfolioUrl}`;
                 const res = await fetch(urlToFetch, { headers: { 'User-Agent': 'Mozilla/5.0' } });
-                if (!res.ok) return { error: "Failed to fetch portfolio website." };
+                if (!res.ok) return { error: "An unknown error occurred" };
                 const html = await res.text();
                 const $ = cheerio.load(html);
                 extractedText = $('body').text().replace(/\s+/g, ' ');
             } catch (err) {
-                return { error: "Could not read portfolio website. Make sure it's a valid public URL." };
+                return { error: "An unknown error occurred" };
             }
         } else {
             return { error: "Please provide a resume file or portfolio URL." };
@@ -90,7 +90,7 @@ export async function handleResume(formData: FormData) {
         )
 
         if (!res.ok) {
-            return { error: "Failed to fetch jobs from Jobstreet API.", extractedText }
+            return { error: "An unknown error occurred", extractedText }
         }
 
         const data = await res.json()
@@ -119,7 +119,7 @@ export async function fetchJobsForExpertise(searchQuery: string) {
         )
 
         if (!res.ok) {
-            return { error: "Failed to fetch jobs from Jobstreet API." }
+            return { error: "An unknown error occurred" }
         }
 
         const data = await res.json()

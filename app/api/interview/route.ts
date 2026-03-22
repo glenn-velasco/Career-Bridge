@@ -62,11 +62,11 @@ Instructions:
         if (response?.text) {
             return NextResponse.json({ text: response.text });
         } else {
-            return NextResponse.json({ error: lastError?.message || "All models failed to generate a response" }, { status: 500 });
+            return NextResponse.json({ error: "An unknown error occurred" }, { status: 500 });
         }
 
     } catch (error: any) {
         console.error("Interview API Error:", error);
-        return NextResponse.json({ error: error.message || "An error occurred" }, { status: 500 });
+        return NextResponse.json({ error: "An unknown error occurred" }, { status: 500 });
     }
 }
