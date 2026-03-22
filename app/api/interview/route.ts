@@ -35,7 +35,7 @@ Instructions:
             { role: 'user', parts: [{ text: "Hello, I'm ready for the interview. Please start." }] }
         ];
 
-        const fallbackModels = ['gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-3-flash-preview', 'gemini-2.5-pro'];
+        const fallbackModels = ['gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-3-flash-preview', 'gemini-2.5-pro', 'gemini-flash-latest'];
         let response;
         let lastError;
 

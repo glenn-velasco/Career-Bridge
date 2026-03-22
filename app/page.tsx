@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { UploadCloud, Send, X, Bot, ChevronLeft, ChevronRight, MapPinned, BriefcaseBusiness, Clock3, Banknote} from "lucide-react"
+import { UploadCloud, Send, X, Bot, ChevronLeft, ChevronRight, MapPinned, BriefcaseBusiness, Clock3, Banknote, Loader2} from "lucide-react"
 import Link from "next/link"
 import { handleResume, fetchJobsForExpertise } from "@/lib/actions";
 import { InterviewChat } from "@/components/ui/interview-chat";
@@ -28,6 +28,16 @@ export default function JobBoard() {
   const [isMounted, setIsMounted] = React.useState(false)
   const [selectedJob, setSelectedJob] = React.useState<any | null>(null)
   const [isInterviewing, setIsInterviewing] = React.useState(false)
+  const [shouldHideHeader, setShouldHideHeader] = React.useState(false);
+
+  React.useEffect(() => {
+    if (jobs.length > 0) {
+      const timer = setTimeout(() => setShouldHideHeader(true), 500);
+      return () => clearTimeout(timer);
+    } else {
+      setShouldHideHeader(false);
+    }
+  }, [jobs.length]);
 
   React.useEffect(() => {
     setIsMounted(true)
@@ -56,7 +66,6 @@ export default function JobBoard() {
     }
   }, [])
 
-//  Add this block after your second useEffect
   React.useEffect(() => {
     if (isMounted && portfolioUrl === "" && !fileName) {
       // Clear all results from the UI
@@ -252,16 +261,18 @@ export default function JobBoard() {
           </div>
           )}
           
-          {(jobs.length > 0)&& (
-            <div className="flex flex-col items-center justify-center text-center mt-10">
-              <h1 className="text-xl sm:text-5xl font-bold text-white drop-shadow-md ">
-                Open Positions
-              </h1>
-              <p className="text-slate-200/90 text-xl sm:text-xl mt-3">
-                Begin Your Career Now
-              </p>
-              <div className="absolute top-4 right-4 sm:top-8 sm:right-8">
-                {/* <ModeToggle /> */}
+          {jobs.length > 0 && (
+            <div className={`success-header-container ${shouldHideHeader ? "hidden-header" : ""}`}>
+              <div className="flex flex-col items-center justify-center text-center mt-10">
+                <h1 className="text-xl sm:text-5xl font-bold text-white drop-shadow-md">
+                  Open Positions
+                </h1>
+                <p className="text-slate-200/90 text-xl sm:text-xl mt-3">
+                  Begin Your Career Now
+                </p>
+                <div className="absolute top-4 right-4 sm:top-8 sm:right-8">
+                  {/* <ModeToggle /> */}
+                </div>
               </div>
             </div>
           )}
@@ -428,15 +439,37 @@ export default function JobBoard() {
                     <h3 className="text-xl font-semibold text-zinc-100 px-2">AI Role Match</h3>
                     <p className="text-xs text-zinc-500 mt-0.5"></p>
                     {!fileName && (
-                    <Input
-                      type="url"
-                      name="portfolioUrl"
-                      placeholder="https://yourportfolio.com"
-                      value={portfolioUrl}
-                      onChange={(e) => setPortfolioUrl(e.target.value)}
-                      className="w-full h-12 rounded-xl bg-slate-700/50 border border-slate-600/50 text-white placeholder:text-slate-400 focus:ring-2 focus:ring-[#3EA8A7] outline-none transition"
-                    />
-                  )}
+                      <div className="relative">
+                        <Input
+                          type="url"
+                          name="portfolioUrl"
+                          placeholder="https://yourportfolio.com"
+                          value={portfolioUrl}
+                          onChange={(e) => setPortfolioUrl(e.target.value)}
+                          className="w-full h-12 rounded-xl bg-slate-700/50 border border-slate-600/50 text-white placeholder:text-slate-400 focus:ring-2 focus:ring-[#3EA8A7] outline-none transition pr-10"
+                        />
+                        {portfolioUrl && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPortfolioUrl("")
+                              setDetectedExpertise(null)
+                              setExpertiseList([])
+                              setJobs([])
+                              setCurrentPage(1)
+                              localStorage.removeItem("job_list")
+                              localStorage.removeItem("current_page")
+                              localStorage.removeItem("detected_expertise")
+                              localStorage.removeItem("expertise_list")
+                            }}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-red-500 transition-colors p-1 rounded-full hover:bg-red-950/30 flex items-center justify-center focus:outline-none"
+                            title="Clear URL"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -475,8 +508,18 @@ export default function JobBoard() {
                   <UploadCloud className="h-4 w-4 sm:mr-2" />
                   <span className="hidden sm:inline">{fileName ? "Change" : "Upload"}</span>
                 </Button>
-                <Button type="submit" size="sm" className="bg-white w-full text-[#0E2931] hover:bg-[#3EA8A7]" disabled={(!fileName && !portfolioUrl) || isPending}>
-                  {isPending ? "AI Parsing..." : "Find"}
+                <Button 
+                  type="submit" 
+                  size="sm" 
+                  className="bg-white w-full text-[#0E2931] hover:bg-[#3EA8A7] disabled:opacity-80 h-10 transition-all duration-200" 
+                  disabled={(!fileName && !portfolioUrl) || isPending}
+                >
+                  {isPending ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <Loader2 className="h-5 w-5 animate-spin-fast" strokeWidth={3} />
+                      <span className="font-bold">Analyzing...</span>
+                    </div>
+                  ) : "Find"}
                 </Button>
               </div>
             </form>

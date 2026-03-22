@@ -51,25 +51,31 @@ export async function handleResume(formData: FormData) {
         const apiKey = process.env.GEMINI_API_KEY;
 
         if (apiKey) {
-            try {
-                const ai = new GoogleGenAI({ apiKey });
-                const prompt = `Analyze this resume/portfolio text and extract the top 3 best matching job titles or core expertises. Respond ONLY with a comma-separated list of 3 titles (each 1-3 words max). Example: Software Engineer, Front End Developer, UI UX Designer.\n\nText:\n${extractedText.substring(0, 15000)}`;
+            const fallbackModels = ['gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-flash-latest', 'gemini-2.5-pro'];
+            let response;
+            
+            for (const modelName of fallbackModels) {
+                try {
+                    const ai = new GoogleGenAI({ apiKey });
+                    const prompt = `Analyze this resume/portfolio text and extract the top 3 best matching job titles or core expertises. Respond ONLY with a comma-separated list of 3 titles (each 1-3 words max). Example: Software Engineer, Front End Developer, UI UX Designer.\n\nText:\n${extractedText.substring(0, 15000)}`;
 
-                const response = await ai.models.generateContent({
-                    model: 'gemini-2.5-flash',
-                    contents: prompt
-                });
+                    response = await ai.models.generateContent({
+                        model: modelName,
+                        contents: prompt
+                    });
 
-                if (response.text) {
-                    const rawTitles = response.text.trim().replace(/[".]/g, '');
-                    expertiseList = rawTitles.split(',').map(s => s.trim()).filter(Boolean);
-                    if (expertiseList.length > 0) {
-                        searchQuery = expertiseList[0];
-                        detectedExpertise = expertiseList[0];
+                    if (response?.text) {
+                        const rawTitles = response.text.trim().replace(/[".]/g, '');
+                        expertiseList = rawTitles.split(',').map(s => s.trim()).filter(Boolean);
+                        if (expertiseList.length > 0) {
+                            searchQuery = expertiseList[0];
+                            detectedExpertise = expertiseList[0];
+                            break;
+                        }
                     }
+                } catch (e) {
+                    console.error(`Gemini model ${modelName} failed`, e);
                 }
-            } catch (e) {
-                console.error("Gemini failed, using fallback", e);
             }
         } else {
             console.warn("No GEMINI_API_KEY found. Falling back to default search.");
