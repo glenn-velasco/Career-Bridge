@@ -3,7 +3,6 @@
 import { GoogleGenAI } from '@google/genai';
 import mammoth from 'mammoth';
 import * as cheerio from 'cheerio';
-import { PDFParse } from 'pdf-parse';
 
 export async function handleResume(formData: FormData) {
     try {
@@ -15,6 +14,7 @@ export async function handleResume(formData: FormData) {
         if (file && file.size > 0) {
             const buffer = Buffer.from(await file.arrayBuffer());
             if (file.name.endsWith('.pdf')) {
+                const { PDFParse } = await import('pdf-parse');
                 const parser = new PDFParse({ data: buffer });
                 const pdfData = await parser.getText();
                 extractedText = pdfData.text;
