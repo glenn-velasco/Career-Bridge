@@ -49,7 +49,7 @@ Ensure you have [![Node.js](https://img.shields.io/badge/node.js-339933?style=fl
 ### 2. Environment Variables
 To run this project, you will need to add the following environment variables to your `.env` file:
 
-`NEXT_PUBLIC_GEMINI_API_KEY` - Your Google Gemini API Key
+`GEMINI_API_KEY` - Your Google Gemini API Key
 
 `RAPIDAPI_KEY` - Your RapidAPI Key for Jobstreet API
 
@@ -67,7 +67,7 @@ Open http://localhost:3000 to view the application.
 
 To run this project, you will need to add the following environment variables to your `.env` file:
 
-    NEXT_PUBLIC_GEMINI_API_KEY - Your Google Gemini API Key
+    GEMINI_API_KEY - Your Google Gemini API Key
 
     RAPIDAPI_KEY - Your RapidAPI Key for Jobstreet API
 
