@@ -101,7 +101,7 @@ export default function JobBoard() {
 
       const file = formData.get("resume") as File | null;
 
-      if (fileName && (!file || file.size === 0) || !portfolioUrl) {
+      if (fileName && (!file || file.size === 0) && !portfolioUrl) {
 
         setError("Please re-select your resume file. Browsers clear file selections when the page is reloaded.");
 
