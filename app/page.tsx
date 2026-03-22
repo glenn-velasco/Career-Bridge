@@ -8,7 +8,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Button } from "@/components/ui/button"
 import { UploadCloud, Send, X, Bot, ChevronLeft, ChevronRight, MapPinned, BriefcaseBusiness, Clock3, Banknote} from "lucide-react"
 import Link from "next/link"
-import { handleResume } from "@/lib/actions";
+import { handleResume, fetchJobsForExpertise } from "@/lib/actions";
 import { InterviewChat } from "@/components/ui/interview-chat";
 
 export default function JobBoard() {
@@ -19,6 +19,7 @@ export default function JobBoard() {
   const [currentPage, setCurrentPage] = React.useState(1)
   const [portfolioUrl, setPortfolioUrl] = React.useState<string>("")
   const [detectedExpertise, setDetectedExpertise] = React.useState<string | null>(null)
+  const [expertiseList, setExpertiseList] = React.useState<string[]>([])
   const [isPending, setIsPending] = React.useState<boolean>(false)
 
   const ITEMS_PER_PAGE = 5;
@@ -33,10 +34,18 @@ export default function JobBoard() {
     const savedJobs = localStorage.getItem("job_list")
     const savedPage = localStorage.getItem("current_page")
     const savedExpertise = localStorage.getItem("detected_expertise")
+    const savedExpertiseList = localStorage.getItem("expertise_list")
 
     if (savedFileName) setFileName(savedFileName)
     if (savedPage) setCurrentPage(parseInt(savedPage, 10) || 1)
     if (savedExpertise) setDetectedExpertise(savedExpertise)
+    
+    if (savedExpertiseList) {
+      try {
+        setExpertiseList(JSON.parse(savedExpertiseList))
+      } catch (e) { }
+    }
+
     if (savedJobs) {
       try {
         setJobs(JSON.parse(savedJobs))
@@ -52,10 +61,12 @@ export default function JobBoard() {
       // Clear all results from the UI
       setJobs([]);
       setDetectedExpertise(null);
+      setExpertiseList([]);
       setError(null);
       // Clear memory so it doesn't come back on refresh
       localStorage.removeItem("job_list");
       localStorage.removeItem("detected_expertise");
+      localStorage.removeItem("expertise_list");
       localStorage.removeItem("current_page");
     }
   }, [portfolioUrl, fileName, isMounted]);
@@ -73,12 +84,14 @@ export default function JobBoard() {
       localStorage.setItem("job_list", JSON.stringify(jobs))
       localStorage.setItem("current_page", currentPage.toString())
       if (detectedExpertise) localStorage.setItem("detected_expertise", detectedExpertise)
+      if (expertiseList && expertiseList.length > 0) localStorage.setItem("expertise_list", JSON.stringify(expertiseList))
     } else {
       localStorage.removeItem("job_list")
       localStorage.removeItem("current_page")
       localStorage.removeItem("detected_expertise")
+      localStorage.removeItem("expertise_list")
     }
-  }, [fileName, jobs, currentPage, detectedExpertise, isMounted])
+  }, [fileName, jobs, currentPage, detectedExpertise, expertiseList, isMounted])
 
   const handleUploadClick = () => {
     fileInputRef.current?.click()
@@ -90,6 +103,26 @@ export default function JobBoard() {
       setFileName(file.name)
     }
   }
+
+  const handleExpertiseChange = async (newExpertise: string) => {
+    setDetectedExpertise(newExpertise);
+    setIsPending(true);
+    setError(null);
+    try {
+      const response = await fetchJobsForExpertise(newExpertise);
+      if (response.error) {
+        setError(response.error);
+        setJobs([]);
+      } else if (response.data) {
+        setJobs(response.data);
+        setCurrentPage(1);
+      }
+    } catch (err: any) {
+      setError(err.message || "An unexpected error occurred");
+    } finally {
+      setIsPending(false);
+    }
+  };
 
   const handleResumeSubmit = async (formData: FormData) => {
 
@@ -127,6 +160,10 @@ export default function JobBoard() {
         setJobs(response.data)
 
         setDetectedExpertise(response.expertise || null)
+        
+        if (response.expertiseList) {
+          setExpertiseList(response.expertiseList)
+        }
 
         setCurrentPage(1)
 
@@ -216,13 +253,26 @@ export default function JobBoard() {
                 
               }
               {detectedExpertise && (
-                <div className="rounded-xl border border-white/40 px-6 py-2 shadow-xl bg-[#0e2931] whitespace-nowrap flex items-center">
-                  <p className="text-xs sm:text-sm font-bold text-white tracking-wider">
-                    Detected Expertise: 
-                    <span className="text-emerald-400 ml-2">
+                <div className="rounded-xl border border-white/40 px-6 py-2 shadow-xl bg-[#0e2931] flex flex-col sm:flex-row items-center gap-2">
+                  <p className="text-xs sm:text-sm font-bold text-white tracking-wider whitespace-nowrap">
+                    Detected Expertise:
+                  </p>
+                  {expertiseList.length > 1 ? (
+                    <select
+                      value={detectedExpertise}
+                      onChange={(e) => handleExpertiseChange(e.target.value)}
+                      className="bg-[#163d44] text-emerald-400 font-bold border border-emerald-500/30 rounded-lg px-3 py-1 text-sm outline-none cursor-pointer focus:ring-2 focus:ring-emerald-500/50"
+                      disabled={isPending}
+                    >
+                      {expertiseList.map((exp, idx) => (
+                        <option key={idx} value={exp}>{exp}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <span className="text-emerald-400 font-bold text-sm ml-2">
                       {detectedExpertise}
                     </span>
-                  </p>
+                  )}
                 </div>
               )}
             </div>
@@ -354,6 +404,7 @@ export default function JobBoard() {
                           setFileName(null)
                           setPortfolioUrl("")
                           setDetectedExpertise(null)
+                          setExpertiseList([])
                           setJobs([])
                           setCurrentPage(1)
                           if (fileInputRef.current) fileInputRef.current.value = ""
@@ -361,6 +412,7 @@ export default function JobBoard() {
                           localStorage.removeItem("job_list")
                           localStorage.removeItem("current_page")
                           localStorage.removeItem("detected_expertise")
+                          localStorage.removeItem("expertise_list")
                         }}
                         className="text-zinc-400 hover:text-red-500 transition-colors p-0.5 rounded-full hover:bg-red-950 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-red-200"
                         title="Remove file"

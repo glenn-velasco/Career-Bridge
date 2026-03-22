@@ -46,13 +46,14 @@ export async function handleResume(formData: FormData) {
 
         let searchQuery = "";
         let detectedExpertise = "";
+        let expertiseList: string[] = [];
 
         const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
         if (apiKey) {
             try {
                 const ai = new GoogleGenAI({ apiKey });
-                const prompt = `Analyze this resume/portfolio text and extract the primary job title or core expertise in exactly 1 to 3 words. Respond ONLY with the job title. (e.g., 'Software Engineer', 'Data Scientist', 'Marketing Manager').\n\nText:\n${extractedText.substring(0, 15000)}`;
+                const prompt = `Analyze this resume/portfolio text and extract the top 3 best matching job titles or core expertises. Respond ONLY with a comma-separated list of 3 titles (each 1-3 words max). Example: Software Engineer, Front End Developer, UI UX Designer.\n\nText:\n${extractedText.substring(0, 15000)}`;
 
                 const response = await ai.models.generateContent({
                     model: 'gemini-2.5-flash',
@@ -60,8 +61,12 @@ export async function handleResume(formData: FormData) {
                 });
 
                 if (response.text) {
-                    searchQuery = response.text.trim().replace(/[".]/g, '');
-                    detectedExpertise = searchQuery;
+                    const rawTitles = response.text.trim().replace(/[".]/g, '');
+                    expertiseList = rawTitles.split(',').map(s => s.trim()).filter(Boolean);
+                    if (expertiseList.length > 0) {
+                        searchQuery = expertiseList[0];
+                        detectedExpertise = expertiseList[0];
+                    }
                 }
             } catch (e) {
                 console.error("Gemini failed, using fallback", e);
@@ -69,6 +74,39 @@ export async function handleResume(formData: FormData) {
         } else {
             console.warn("No GEMINI_API_KEY found. Falling back to default search.");
         }
+
+        if (expertiseList.length === 0 && searchQuery) {
+            expertiseList = [searchQuery];
+        }
+
+        const res = await fetch(
+            `https://jobstreet.p.rapidapi.com/search?query=${encodeURIComponent(searchQuery)}&countryCode=my`,
+            {
+                headers: {
+                    'x-rapidapi-key': process.env.RAPIDAPI_KEY || "",
+                    'x-rapidapi-host': 'jobstreet.p.rapidapi.com'
+                }
+            }
+        )
+
+        if (!res.ok) {
+            return { error: "Failed to fetch jobs from Jobstreet API.", extractedText }
+        }
+
+        const data = await res.json()
+        const jobs = data.data || (Array.isArray(data) ? data : (data.results || []));
+
+        return { data: jobs, expertise: detectedExpertise, expertiseList, extractedText }
+
+    } catch (err: any) {
+        console.error(err);
+        return { error: err.message || "An unexpected error occurred during processing." };
+    }
+}
+
+export async function fetchJobsForExpertise(searchQuery: string) {
+    try {
+        if (!searchQuery) return { error: "Search query is required." };
 
         const res = await fetch(
             `https://jobstreet.p.rapidapi.com/search?query=${encodeURIComponent(searchQuery)}&countryCode=my`,
@@ -87,8 +125,7 @@ export async function handleResume(formData: FormData) {
         const data = await res.json()
         const jobs = data.data || (Array.isArray(data) ? data : (data.results || []));
 
-        return { data: jobs, expertise: detectedExpertise }
-
+        return { data: jobs }
     } catch (err: any) {
         console.error(err);
         return { error: err.message || "An unexpected error occurred during processing." };

@@ -35,7 +35,7 @@ Instructions:
             { role: 'user', parts: [{ text: "Hello, I'm ready for the interview. Please start." }] }
         ];
 
-        const fallbackModels = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.5-pro'];
+        const fallbackModels = ['gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.5-pro'];
         let response;
         let lastError;
 
@@ -49,7 +49,7 @@ Instructions:
                         temperature: 0.7,
                     }
                 });
-                
+
                 if (response?.text) {
                     break;
                 }
