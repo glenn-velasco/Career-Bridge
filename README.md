@@ -21,7 +21,7 @@ The platform includes interactive mock interviews with "Alice", an AI interviewe
 
     - Multi-input: Users can respond via text or voice.
 
-    - Coext-to-Speech (TTS): Alice provides spoken responses, which users can enable or disable for a customized experience.
+    - Text-to-Speech (TTS): Alice provides spoken responses, which users can enable or disable for a customized experience.
 
 ---
 
